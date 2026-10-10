@@ -266,7 +266,7 @@ def login(payload: AuthRequest) -> dict[str, str]:
     with get_database() as connection:
         user = connection.execute(
             """
-            SELECT identity, password_hash, verified FROM users
+            SELECT identity, password_hash, full_name, verified FROM users
             WHERE (identity = ? COLLATE NOCASE OR phone = ?)
             """,
             (identity, identity),
