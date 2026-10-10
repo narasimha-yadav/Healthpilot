@@ -1,0 +1,158 @@
+.capability-card {
+  margin-bottom: 18px;
+  padding: 16px;
+}
+
+.capability-card .section-heading {
+  margin-top: 0;
+}
+
+.capability-list {
+  display: grid;
+  gap: 12px;
+}
+
+.capability-list > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.capability-list strong,
+.capability-list small {
+  display: block;
+}
+
+.capability-list strong {
+  font-size: .84rem;
+}
+
+.capability-list small {
+  color: var(--muted);
+  font-size: .73rem;
+  margin-top: 2px;
+}
+
+.capability-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 9px;
+  background: #e1f1eb;
+  color: var(--teal);
+}
+
+.status-live {
+  color: var(--green);
+}
+
+.capability-action {
+  padding-left: 0;
+  margin-top: 5px;
+}
+
+.architecture-strip {
+  display: grid;
+  gap: 3px;
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #eef8f3;
+  color: var(--teal);
+  font-size: .74rem;
+}
+
+.architecture-strip span {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.pipeline-card {
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #f5fbf8;
+}
+
+.pipeline-steps {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
+}
+
+.pipeline-steps i {
+  font-style: normal;
+  color: var(--gold);
+}
+
+.pipeline-active {
+  color: var(--teal);
+}
+
+.pipeline-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.architecture-flow {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.architecture-layer {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+}
+
+.architecture-layer > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #fff;
+  font-weight: 700;
+}
+
+.architecture-layer strong,
+.architecture-layer small {
+  display: block;
+}
+
+.architecture-layer strong {
+  font-size: .9rem;
+}
+
+.architecture-layer small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .74rem;
+}
+
+.architecture-status {
+  margin-top: 18px;
+}
+
+.architecture-status p {
+  color: var(--muted);
+  font-size: .76rem;
+}
