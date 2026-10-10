@@ -8,7 +8,6 @@ import os
 import smtplib
 import ssl
 import urllib.error
-import urllib.parse
 import urllib.request
 from datetime import date
 from pathlib import Path
@@ -163,17 +162,26 @@ def gemini_reply(message: str, language: str, person: str) -> str | None:
     ).encode("utf-8")
     request = urllib.request.Request(
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        "gemini-2.5-flash:generateContent?key="
-        + urllib.parse.quote(api_key),
+        "gemini-2.5-flash:generateContent",
         data=body,
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key,
+        },
         method="POST",
     )
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
             result = json.loads(response.read().decode("utf-8"))
         return result["candidates"][0]["content"]["parts"][0]["text"].strip()
-    except (OSError, urllib.error.HTTPError, KeyError, IndexError, TypeError, json.JSONDecodeError):
+    except (
+        OSError,
+        urllib.error.HTTPError,
+        KeyError,
+        IndexError,
+        TypeError,
+        json.JSONDecodeError,
+    ):
         return None
 
 
