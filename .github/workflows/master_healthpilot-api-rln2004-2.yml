@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action:
 # https://github.com/Azure/webapps-deploy
 
-name: Build and deploy Python app to Azure Web App - healthpilot-api-rln2004-2
+name: Build and deploy Python app to Azure Web App - healthpilot-api-rln2004
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  AZURE_WEBAPP_NAME: healthpilot-api-rln2004-2
+  AZURE_WEBAPP_NAME: healthpilot-api-rln2004
   AZURE_RESOURCE_GROUP: healthpilot-rg
 
 jobs:
