@@ -5,9 +5,15 @@ import hashlib
 import secrets
 import json
 import os
+import smtplib
+import ssl
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import date
 from pathlib import Path
 from typing import Any
+from email.message import EmailMessage
 
 from fastapi import File, FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -92,6 +98,76 @@ def verify_password(password: str, stored: str) -> bool:
         return secrets.compare_digest(digest.hex(), digest_hex)
     except (ValueError, TypeError):
         return False
+
+
+def send_verification_email(recipient: str, code: str) -> bool:
+    smtp_user = os.environ.get("GMAIL_SMTP_USER")
+    smtp_password = os.environ.get("GMAIL_SMTP_APP_PASSWORD")
+    if not smtp_user or not smtp_password:
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = "Your HealthPilot verification code"
+    message["From"] = smtp_user
+    message["To"] = recipient
+    message.set_content(
+        f"Your HealthPilot verification code is {code}.\n\n"
+        "This code expires in 15 minutes. If you did not create this account, "
+        "you can ignore this email."
+    )
+    context = ssl.create_default_context()
+    with smtplib.SMTP("smtp.gmail.com", 587, timeout=15) as server:
+        server.starttls(context=context)
+        server.login(smtp_user, smtp_password)
+        server.send_message(message)
+    return True
+
+
+def send_code_or_raise(recipient: str, code: str) -> None:
+    if not os.environ.get("GMAIL_SMTP_USER"):
+        return
+    try:
+        send_verification_email(recipient, code)
+    except (OSError, smtplib.SMTPException) as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Verification email could not be sent. Please try again later.",
+        ) from error
+
+
+def gemini_reply(message: str, language: str, person: str) -> str | None:
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return None
+
+    prompt = (
+        "You are HealthPilot, a careful health education assistant. "
+        "Give concise, plain-language information, never diagnose, never prescribe, "
+        "and tell the user to contact a qualified clinician for personal decisions. "
+        "If the user describes an emergency, tell them to call local emergency services "
+        "immediately. Reply in the requested language. "
+        f"Requested language: {language}. Context person: {person}. User message: {message}"
+    )
+    body = json.dumps(
+        {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.2, "maxOutputTokens": 300},
+        }
+    ).encode("utf-8")
+    request = urllib.request.Request(
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        "gemini-2.0-flash:generateContent?key="
+        + urllib.parse.quote(api_key),
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        return result["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except (OSError, urllib.error.HTTPError, KeyError, IndexError, TypeError, json.JSONDecodeError):
+        return None
 
 
 def get_database() -> sqlite3.Connection:
@@ -253,10 +329,15 @@ def register(payload: RegisterRequest) -> dict[str, str]:
             raise HTTPException(
                 status_code=409, detail="That email or phone number is already registered."
             ) from error
+    send_code_or_raise(identity, code)
     return {
         "status": "verification_required",
         "identity": identity,
-        "development_code": code,
+        **(
+            {"message": "A verification code was sent to your email address."}
+            if os.environ.get("GMAIL_SMTP_USER")
+            else {"development_code": code}
+        ),
     }
 
 
@@ -303,7 +384,15 @@ def request_account_verification(payload: AccountVerificationStart) -> dict[str,
             """,
             (user["identity"], code),
         )
-    return {"status": "code_created", "development_code": code}
+    send_code_or_raise(user["identity"], code)
+    return {
+        "status": "code_created",
+        **(
+            {"message": "A new verification code was sent to your email address."}
+            if os.environ.get("GMAIL_SMTP_USER")
+            else {"development_code": code}
+        ),
+    }
 
 
 @app.post("/api/auth/verification/confirm")
@@ -547,6 +636,8 @@ def healthpilot_chat(payload: HealthPilotChatRequest, identity: str | None = Non
         }
 
     reply = replies[payload.language]
+    if not any(term in message for term in emergency_terms):
+        reply = gemini_reply(payload.message.strip(), payload.language, payload.person) or reply
     with get_database() as connection:
         connection.executemany(
             """

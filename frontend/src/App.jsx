@@ -103,7 +103,7 @@ function Login({ t, onLogin }) {
         const response = await registerAccount(fields.fullName, fields.email, fields.password, fields.phone);
         setVerificationCode(response.development_code || '');
         setVerificationMode(true);
-        setError(`Account created. Your verification code is ${response.development_code}.`);
+        setError(response.message || `Account created. Your verification code is ${response.development_code}.`);
         return;
       }
     } catch (requestError) {
@@ -117,7 +117,7 @@ function Login({ t, onLogin }) {
     try {
       const response = await requestAccountVerification(fields.email);
       setVerificationCode(response.development_code || '');
-      setError(`A new verification code was created: ${response.development_code}.`);
+      setError(response.message || `A new verification code was created: ${response.development_code}.`);
     } catch (requestError) { setError(requestError.message); } finally { setSubmitting(false); }
   };
   const finishVerification = async event => {

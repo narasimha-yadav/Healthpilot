@@ -42,8 +42,30 @@ hashes and are never stored as plain text.
 New accounts store full name, email, and required phone number, and must be
 verified with a six-digit code before login. The login form supports email or
 phone number, with phone number as the primary login field. The local
-development flow shows the code in the app; email delivery should replace this
-before production.
+development flow shows the code in the app. For production Gmail delivery,
+create a Google App Password (never use your normal Gmail password) and set
+these backend environment variables:
+
+```text
+GMAIL_SMTP_USER=your-gmail-address
+GMAIL_SMTP_APP_PASSWORD=your-16-character-app-password
+```
+
+When `GMAIL_SMTP_USER` is configured, registration and resend verification send
+the code by Gmail SMTP and no code is returned in the API response. If Gmail is
+not configured, the development-only code response remains available locally.
+
+The Ask HealthPilot endpoint can use Google Gemini when this backend variable
+is configured:
+
+```text
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+The key stays on the backend and is never exposed to the browser. Without a
+Gemini key, the existing safety-focused fallback responses are used. Emergency
+messages are handled locally before any AI request and direct the user to call
+108 or 112.
 Forgot Password creates a six-digit code in the `password_resets` table. In
 local development the code is returned by the API and shown in the reset flow;
 an email or SMS provider must replace this behavior before production use.
