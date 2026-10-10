@@ -275,7 +275,11 @@ def login(payload: AuthRequest) -> dict[str, str]:
         raise HTTPException(status_code=401, detail="Incorrect email/username or password.")
     if not user["verified"]:
         raise HTTPException(status_code=403, detail="Verify your account before logging in.")
-    return {"status": "ok", "identity": user["identity"]}
+    return {
+        "status": "ok",
+        "identity": user["identity"],
+        "full_name": user["full_name"] or user["identity"],
+    }
 
 
 @app.post("/api/auth/verification/request")
