@@ -298,7 +298,18 @@ def initialize_database() -> None:
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "healthy", "service": "HealthPilot backend", "database": "sqlite"}
+    return {
+        "status": "healthy",
+        "service": "HealthPilot backend",
+        "database": "sqlite",
+        "gemini_configured": str(bool(os.environ.get("GEMINI_API_KEY"))).lower(),
+        "email_configured": str(
+            bool(
+                os.environ.get("GMAIL_SMTP_USER")
+                and os.environ.get("GMAIL_SMTP_APP_PASSWORD")
+            )
+        ).lower(),
+    }
 
 
 @app.post("/api/auth/register", status_code=201)
@@ -643,8 +654,12 @@ def healthpilot_chat(payload: HealthPilotChatRequest, identity: str | None = Non
         }
 
     reply = replies[payload.language]
+    provider = "fallback"
     if not any(term in message for term in emergency_terms):
-        reply = gemini_reply(payload.message.strip(), payload.language, payload.person) or reply
+        ai_reply = gemini_reply(payload.message.strip(), payload.language, payload.person)
+        if ai_reply:
+            reply = ai_reply
+            provider = "gemini"
     with get_database() as connection:
         connection.executemany(
             """
@@ -656,7 +671,7 @@ def healthpilot_chat(payload: HealthPilotChatRequest, identity: str | None = Non
                 (owner, "ai", reply, payload.language, payload.person),
             ],
         )
-    return {"reply": reply, "status": "ok", "language": payload.language}
+    return {"reply": reply, "status": "ok", "language": payload.language, "provider": provider}
 
 
 @app.get("/api/healthpilot/chat/history")
