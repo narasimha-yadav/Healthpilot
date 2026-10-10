@@ -124,8 +124,15 @@ def send_verification_email(recipient: str, code: str) -> bool:
 
 
 def send_code_or_raise(recipient: str, code: str) -> None:
-    if not os.environ.get("GMAIL_SMTP_USER"):
+    smtp_user = os.environ.get("GMAIL_SMTP_USER")
+    smtp_password = os.environ.get("GMAIL_SMTP_APP_PASSWORD")
+    if not smtp_user and not smtp_password:
         return
+    if not smtp_user or not smtp_password:
+        raise HTTPException(
+            status_code=503,
+            detail="Gmail verification is not configured completely.",
+        )
     try:
         send_verification_email(recipient, code)
     except (OSError, smtplib.SMTPException) as error:
