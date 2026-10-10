@@ -32,6 +32,11 @@ credentials, API keys, or private deployment keys to the repository.
 The backend uses a local SQLite database at `backend/app/healthpilot.db`.
 Start it with `uvicorn app.main:app --reload` from the `backend` folder.
 Family members are saved there and remain available after refreshing the app.
+
+For Azure Container Apps, use `backend/Dockerfile` as the backend image
+definition. The container listens on the `PORT` environment variable and
+exposes the `/api/health` endpoint. The frontend must be configured with
+`VITE_API_URL` set to the public backend URL before building.
 Accounts are saved in the `users` table. Passwords use salted PBKDF2-SHA256
 hashes and are never stored as plain text.
 New accounts store full name, email, and required phone number, and must be
