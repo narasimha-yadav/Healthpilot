@@ -64,10 +64,14 @@ jobs:
 
       - name: Configure App Service startup
         run: |
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true ENABLE_ORYX_BUILD=true WEBSITES_PORT=8000
           az webapp config set \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_WEBAPP_NAME" \
-            --startup-file "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+            --startup-file "python -m uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port 8000"
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
