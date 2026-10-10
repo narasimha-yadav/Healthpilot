@@ -4,6 +4,7 @@ import sqlite3
 import hashlib
 import secrets
 import json
+import os
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -13,7 +14,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 app = FastAPI(title="HealthPilot API", version="1.0.0")
-DATABASE_PATH = Path(__file__).with_name("healthpilot.db")
+DATABASE_PATH = Path(
+    os.environ.get(
+        "HEALTHPILOT_DATABASE_PATH",
+        "/tmp/healthpilot.db"
+        if os.environ.get("VERCEL")
+        else str(Path(__file__).with_name("healthpilot.db")),
+    )
+)
 
 app.add_middleware(
     CORSMiddleware,
