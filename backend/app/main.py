@@ -191,6 +191,27 @@ def get_database() -> sqlite3.Connection:
     return connection
 
 
+def fallback_health_reply(message: str, language: str) -> str:
+    normalized = message.lower()
+    if "hba1c" in normalized or "a1c" in normalized:
+        return {
+            "en": "HbA1c estimates your average blood sugar over roughly the last 2 to 3 months. Ask your doctor about your personal target and whether your result needs follow-up.",
+            "te": "HbA1c గత 2 నుంచి 3 నెలల సగటు రక్త చక్కెరను చూపిస్తుంది. మీ లక్ష్యం మరియు తదుపరి చర్యలను మీ డాక్టర్‌తో చర్చించండి.",
+            "hi": "HbA1c लगभग पिछले 2 से 3 महीनों की औसत रक्त शर्करा दिखाता है। अपने लक्ष्य और आगे की जाँच के बारे में डॉक्टर से पूछें।",
+        }[language]
+    if "medicine" in normalized or "dose" in normalized or "tablet" in normalized:
+        return {
+            "en": "Take medicines exactly as prescribed and do not change a dose without your doctor or pharmacist. Keep a record of doses and side effects.",
+            "te": "మందులను డాక్టర్ సూచించిన విధంగానే తీసుకోండి. డాక్టర్ లేదా ఫార్మసిస్ట్‌ను అడగకుండా మోతాదును మార్చవద్దు.",
+            "hi": "दवाएँ डॉक्टर के बताए अनुसार लें। डॉक्टर या फार्मासिस्ट से पूछे बिना खुराक न बदलें।",
+        }[language]
+    return {
+        "en": "I can explain health information in simple words. Follow your clinician's plan and ask your doctor or pharmacist before changing any medicine or dose.",
+        "te": "నేను ఆరోగ్య సమాచారాన్ని సులభమైన మాటల్లో వివరించగలను. మందు లేదా మోతాదు మార్చే ముందు మీ డాక్టర్ లేదా ఫార్మసిస్ట్‌ను అడగండి.",
+        "hi": "मैं स्वास्थ्य जानकारी आसान भाषा में समझा सकता हूँ। दवा या खुराक बदलने से पहले डॉक्टर या फार्मासिस्ट से पूछें।",
+    }[language]
+
+
 @app.on_event("startup")
 def initialize_database() -> None:
     with get_database() as connection:
@@ -655,13 +676,13 @@ def healthpilot_chat(payload: HealthPilotChatRequest, identity: str | None = Non
             "hi": "यह आपात स्थिति हो सकती है। अभी 108 या 112 पर कॉल करें या नज़दीकी अस्पताल जाएँ।",
         }
     else:
-        replies = {
-            "en": "I can explain this in simple words. Follow your doctor's plan, and ask your doctor or pharmacist before changing any medicine or dose.",
-            "te": "నేను దీన్ని సులభమైన మాటల్లో వివరిస్తాను. మీ డాక్టర్ ప్రణాళికను అనుసరించండి. మందు లేదా మోతాదును మార్చే ముందు డాక్టర్ లేదా ఫార్మసిస్ట్‌ను అడగండి.",
-            "hi": "मैं इसे आसान भाषा में समझा सकता हूँ। अपने डॉक्टर की योजना का पालन करें। दवा या खुराक बदलने से पहले डॉक्टर या फार्मासिस्ट से पूछें।",
-        }
+        replies = None
 
-    reply = replies[payload.language]
+    reply = (
+        replies[payload.language]
+        if replies is not None
+        else fallback_health_reply(payload.message, payload.language)
+    )
     provider = "fallback"
     if not any(term in message for term in emergency_terms):
         ai_reply = gemini_reply(payload.message.strip(), payload.language, payload.person)
