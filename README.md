@@ -4,6 +4,10 @@ HealthPilot is a mobile-first, single-page prototype for the Altrix Labs
 Challenge 01 hackathon. It helps older patients and family caregivers
 understand reports, organize medicines, and prepare for doctor visits.
 
+For the complete project, architecture, API, deployment, demo, verification,
+security, and roadmap documentation, see
+[docs/PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md).
+
 ## Run locally
 
 ```powershell
