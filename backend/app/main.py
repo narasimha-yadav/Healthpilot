@@ -162,7 +162,7 @@ def gemini_reply(message: str, language: str, person: str) -> str | None:
     ).encode("utf-8")
     request = urllib.request.Request(
         "https://generativelanguage.googleapis.com/v1beta/models/"
-        "gemini-2.5-flash:generateContent",
+        f"{os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')}:generateContent",
         data=body,
         headers={
             "Content-Type": "application/json",
