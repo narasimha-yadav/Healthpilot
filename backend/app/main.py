@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 from email.message import EmailMessage
 
-from fastapi import File, FastAPI, Form, HTTPException, UploadFile
+from fastapi import File, FastAPI, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -657,7 +657,12 @@ def create_family_member(payload: FamilyMemberCreate, identity: str | None = Non
 
 
 @app.post("/api/healthpilot/chat")
-def healthpilot_chat(payload: HealthPilotChatRequest, identity: str | None = None) -> dict[str, str]:
+def healthpilot_chat(
+    payload: HealthPilotChatRequest,
+    identity: str | None = None,
+    header_identity: str | None = Header(default=None, alias="X-User-Identity"),
+) -> dict[str, str]:
+    identity = identity or header_identity
     owner = request_identity(identity)
     message = payload.message.lower()
     emergency_terms = (
@@ -704,7 +709,11 @@ def healthpilot_chat(payload: HealthPilotChatRequest, identity: str | None = Non
 
 
 @app.get("/api/healthpilot/chat/history")
-def chat_history(identity: str | None = None) -> dict[str, Any]:
+def chat_history(
+    identity: str | None = None,
+    header_identity: str | None = Header(default=None, alias="X-User-Identity"),
+) -> dict[str, Any]:
+    identity = identity or header_identity
     owner = request_identity(identity)
     with get_database() as connection:
         rows = connection.execute(
