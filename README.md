@@ -8,6 +8,9 @@ For the complete project, architecture, API, deployment, demo, verification,
 security, and roadmap documentation, see
 [docs/PROJECT_DOCUMENTATION.md](docs/PROJECT_DOCUMENTATION.md).
 
+The ready-to-read submission walkthrough is available in
+[docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+
 ## Run locally
 
 ```powershell
